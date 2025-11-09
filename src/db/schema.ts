@@ -1,112 +1,117 @@
-import { pgTable, varchar, integer, numeric, timestamp, boolean, serial } from 'drizzle-orm/pg-core';
+import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core';
 
-// Users table with varchar primary key
-export const users = pgTable('users', {
-  userId: varchar('user_id', { length: 255 }).primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  phone: varchar('phone', { length: 20 }).notNull(),
-  createdAt: timestamp('created_at').notNull(),
+// Users table with text primary key
+export const users = sqliteTable('users', {
+  userId: text('user_id').primaryKey(),
+  name: text('name').notNull(),
+  email: text('email').notNull().unique(),
+  phone: text('phone').notNull(),
+  createdAt: text('created_at').notNull(),
 });
 
 // Wallets table
-export const wallets = pgTable('wallets', {
-  walletId: serial('wallet_id').primaryKey(),
-  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.userId),
-  balance: numeric('balance', { precision: 10, scale: 2 }).notNull().default('0'),
-  currency: varchar('currency', { length: 10 }).notNull().default('INR'),
-  createdAt: timestamp('created_at').notNull(),
-  updatedAt: timestamp('updated_at').notNull(),
+export const wallets = sqliteTable('wallets', {
+  walletId: integer('wallet_id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => users.userId),
+  balance: real('balance').notNull().default(0),
+  currency: text('currency').notNull().default('INR'),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
 });
 
 // Merchants table
-export const merchants = pgTable('merchants', {
-  merchantId: serial('merchant_id').primaryKey(),
-  merchantCode: varchar('merchant_code', { length: 100 }).notNull().unique(),
-  name: varchar('name', { length: 255 }).notNull(),
-  category: varchar('category', { length: 100 }).notNull(),
-  contactPhone: varchar('contact_phone', { length: 20 }),
-  description: varchar('description', { length: 1000 }),
+export const merchants = sqliteTable('merchants', {
+  merchantId: integer('merchant_id').primaryKey({ autoIncrement: true }),
+  merchantCode: text('merchant_code').notNull().unique(),
+  name: text('name').notNull(),
+  category: text('category').notNull(),
+  contactPhone: text('contact_phone'),
+  description: text('description'),
   totalTransactions: integer('total_transactions').notNull().default(0),
-  rating: numeric('rating', { precision: 3, scale: 2 }).notNull().default('0'),
-  featured: boolean('featured').notNull().default(false),
-  logo: varchar('logo', { length: 500 }).notNull(),
-  createdAt: timestamp('created_at').notNull(),
+  rating: real('rating').notNull().default(0),
+  featured: integer('featured', { mode: 'boolean' }).notNull().default(false),
+  logo: text('logo').notNull(),
+  createdAt: text('created_at').notNull(),
 });
 
 // Transactions table
-export const transactions = pgTable('transactions', {
-  transactionId: serial('transaction_id').primaryKey(),
-  txnRef: varchar('txn_ref', { length: 255 }).notNull().unique(),
-  type: varchar('type', { length: 50 }).notNull(),
-  fromUserId: varchar('from_user_id', { length: 255 }).references(() => users.userId),
-  toUserId: varchar('to_user_id', { length: 255 }).references(() => users.userId),
+export const transactions = sqliteTable('transactions', {
+  transactionId: integer('transaction_id').primaryKey({ autoIncrement: true }),
+  txnRef: text('txn_ref').notNull().unique(),
+  type: text('type').notNull(),
+  fromUserId: text('from_user_id').references(() => users.userId),
+  toUserId: text('to_user_id').references(() => users.userId),
   toMerchantId: integer('to_merchant_id').references(() => merchants.merchantId),
-  recipientName: varchar('recipient_name', { length: 255 }).notNull(),
-  amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
-  status: varchar('status', { length: 50 }).notNull(),
-  channel: varchar('channel', { length: 50 }).notNull(),
-  description: varchar('description', { length: 1000 }),
-  createdAt: timestamp('created_at').notNull(),
+  recipientName: text('recipient_name').notNull(),
+  amount: real('amount').notNull(),
+  status: text('status').notNull(),
+  channel: text('channel').notNull(),
+  description: text('description'),
+  createdAt: text('created_at').notNull(),
 });
+
 
 // Auth tables for better-auth
-export const user = pgTable("user", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  emailVerified: boolean("email_verified")
+export const user = sqliteTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: integer("email_verified", { mode: "boolean" })
     .$defaultFn(() => false)
     .notNull(),
-  image: varchar("image", { length: 500 }),
-  createdAt: timestamp("created_at")
+  image: text("image"),
+  createdAt: integer("created_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
-  updatedAt: timestamp("updated_at")
+  updatedAt: integer("updated_at", { mode: "timestamp" })
     .$defaultFn(() => new Date())
     .notNull(),
 });
 
-export const session = pgTable("session", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  expiresAt: timestamp("expires_at").notNull(),
-  token: varchar("token", { length: 500 }).notNull().unique(),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
-  ipAddress: varchar("ip_address", { length: 50 }),
-  userAgent: varchar("user_agent", { length: 500 }),
-  userId: varchar("user_id", { length: 255 })
+export const session = sqliteTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
-export const account = pgTable("account", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  accountId: varchar("account_id", { length: 255 }).notNull(),
-  providerId: varchar("provider_id", { length: 255 }).notNull(),
-  userId: varchar("user_id", { length: 255 })
+export const account = sqliteTable("account", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  accessToken: varchar("access_token", { length: 1000 }),
-  refreshToken: varchar("refresh_token", { length: 1000 }),
-  idToken: varchar("id_token", { length: 1000 }),
-  accessTokenExpiresAt: timestamp("access_token_expires_at"),
-  refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
-  scope: varchar("scope", { length: 500 }),
-  password: varchar("password", { length: 255 }),
-  createdAt: timestamp("created_at").notNull(),
-  updatedAt: timestamp("updated_at").notNull(),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: integer("access_token_expires_at", {
+    mode: "timestamp",
+  }),
+  refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+    mode: "timestamp",
+  }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-export const verification = pgTable("verification", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  identifier: varchar("identifier", { length: 255 }).notNull(),
-  value: varchar("value", { length: 1000 }).notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").$defaultFn(
+export const verification = sqliteTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
     () => new Date(),
   ),
-  updatedAt: timestamp("updated_at").$defaultFn(
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
     () => new Date(),
   ),
 });
